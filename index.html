@@ -13,339 +13,289 @@
     <link rel="icon" type="image/png" href="assets/favicon.png">
     
     <!-- External Libraries -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Main Stylesheet -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        /* Landing Page Styles */
+        .landing-hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+        
+        .hero-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero-content p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .hero-buttons button {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .hero-buttons button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-get-started {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .btn-demo {
+            background: transparent;
+            color: white;
+            border: 2px solid white !important;
+        }
+        
+        /* Modal Styles */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .auth-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+        
+        .auth-modal-close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .auth-modal h2 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+        
+        .auth-form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .auth-form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
+        .auth-form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .auth-form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .auth-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        .auth-submit:hover {
+            background: #5a67d8;
+        }
+        
+        .auth-divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #999;
+        }
+        
+        .google-signin {
+            width: 100%;
+            padding: 0.75rem;
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .google-signin:hover {
+            background: #f8f8f8;
+        }
+        
+        .auth-switch {
+            text-align: center;
+            margin-top: 1rem;
+            color: #666;
+        }
+        
+        .auth-switch a {
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <i class="fas fa-map-marked-alt"></i>
-                <span>TripSync</span>
+    <!-- Landing Page -->
+    <div class="landing-hero">
+        <div class="hero-content">
+            <h1><i class="fas fa-map-marked-alt"></i> TripSync</h1>
+            <p>Your Smart Travel Companion</p>
+            <p>Plan, organize, and track your perfect trips with timeline views, interactive maps, and budget tracking</p>
+            <div class="hero-buttons">
+                <button class="btn-get-started" onclick="showLogin()">Get Started</button>
+                <button class="btn-demo" onclick="startDemoMode()">Try Demo</button>
             </div>
-            <ul class="nav-menu">
-                <li><a href="#dashboard" class="nav-link active" data-view="dashboard">Dashboard</a></li>
-                <li><a href="#timeline" class="nav-link" data-view="timeline">Timeline</a></li>
-                <li><a href="#calendar" class="nav-link" data-view="calendar">Calendar</a></li>
-                <li><a href="#map" class="nav-link" data-view="map">Map</a></li>
-                <li><a href="#budget" class="nav-link" data-view="budget">Budget</a></li>
-                <li><a href="#documents" class="nav-link" data-view="documents">Documents</a></li>
-                <li><a href="#checklist" class="nav-link" data-view="checklist">Checklist</a></li>
-            </ul>
-            <div class="nav-actions">
-                <button class="btn-share" id="shareTrip">
-                    <i class="fas fa-share-alt"></i> Share
-                </button>
-                <button class="btn-primary" id="newTrip">
-                    <i class="fas fa-plus"></i> New Trip
-                </button>
-            </div>
-            <button class="nav-toggle" id="navToggle">
-                <span></span>
-                <span></span>
-                <span></span>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="auth-modal">
+        <div class="auth-modal-content">
+            <span class="auth-modal-close" onclick="hideLogin()">&times;</span>
+            <h2>Welcome Back</h2>
+            <form onsubmit="login(event); return false;">
+                <div class="auth-form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="auth-form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="auth-submit">Login</button>
+            </form>
+            <div class="auth-divider">OR</div>
+            <button class="google-signin" onclick="googleSignIn()">
+                <i class="fab fa-google"></i> Sign in with Google
             </button>
+            <div class="auth-switch">
+                Don't have an account? <a onclick="showSignup()">Sign up</a>
+            </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- Main Container -->
-    <main class="main-container">
-        <!-- Dashboard View -->
-        <section id="dashboard" class="view-section active">
-            <div class="dashboard-header">
-                <h1>My Trips</h1>
-                <div class="dashboard-filters">
-                    <select id="tripFilter" class="filter-select">
-                        <option value="all">All Trips</option>
-                        <option value="upcoming">Upcoming</option>
-                        <option value="past">Past</option>
-                        <option value="draft">Draft</option>
-                    </select>
+    <!-- Signup Modal -->
+    <div id="signupModal" class="auth-modal">
+        <div class="auth-modal-content">
+            <span class="auth-modal-close" onclick="hideSignup()">&times;</span>
+            <h2>Create Account</h2>
+            <form onsubmit="signup(event); return false;">
+                <div class="auth-form-group">
+                    <label for="signupName">Name</label>
+                    <input type="text" id="signupName" required>
                 </div>
-            </div>
-            
-            <div class="trips-grid" id="tripsGrid">
-                <!-- Trip cards will be dynamically inserted here -->
-            </div>
-        </section>
-
-        <!-- Timeline View -->
-        <section id="timeline" class="view-section">
-            <div class="timeline-header">
-                <h2>Trip Timeline</h2>
-                <button class="btn-secondary" id="addActivity">
-                    <i class="fas fa-plus"></i> Add Activity
-                </button>
-            </div>
-            <div class="timeline-container" id="timelineContainer">
-                <!-- Timeline items will be dynamically inserted here -->
-            </div>
-        </section>
-
-        <!-- Calendar View -->
-        <section id="calendar" class="view-section">
-            <div class="calendar-header">
-                <h2>Trip Calendar</h2>
-                <div class="calendar-controls">
-                    <button id="calPrev"><i class="fas fa-chevron-left"></i></button>
-                    <span id="calendarMonth"></span>
-                    <button id="calNext"><i class="fas fa-chevron-right"></i></button>
+                <div class="auth-form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" required>
                 </div>
-            </div>
-            <div id="calendarContainer" class="calendar-container">
-                <!-- Calendar will be rendered here -->
-            </div>
-        </section>
-
-        <!-- Map View -->
-        <section id="map" class="view-section">
-            <div class="map-header">
-                <h2>Trip Map</h2>
-                <div class="map-controls">
-                    <button id="centerMap" class="btn-icon" title="Center Map">
-                        <i class="fas fa-crosshairs"></i>
-                    </button>
-                    <button id="fullscreenMap" class="btn-icon" title="Fullscreen">
-                        <i class="fas fa-expand"></i>
-                    </button>
+                <div class="auth-form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" required minlength="6">
                 </div>
-            </div>
-            <div id="mapContainer" class="map-container">
-                <!-- Leaflet map will be rendered here -->
-            </div>
-        </section>
-
-        <!-- Budget View -->
-        <section id="budget" class="view-section">
-            <div class="budget-header">
-                <h2>Trip Budget</h2>
-                <button class="btn-secondary" id="addExpense">
-                    <i class="fas fa-plus"></i> Add Expense
-                </button>
-            </div>
-            
-            <div class="budget-summary">
-                <div class="budget-card">
-                    <div class="budget-icon">
-                        <i class="fas fa-wallet"></i>
-                    </div>
-                    <div class="budget-info">
-                        <span class="budget-label">Total Budget</span>
-                        <span class="budget-amount" id="totalBudget">$0</span>
-                    </div>
+                <div class="auth-form-group">
+                    <label for="signupConfirmPassword">Confirm Password</label>
+                    <input type="password" id="signupConfirmPassword" required minlength="6">
                 </div>
-                
-                <div class="budget-card">
-                    <div class="budget-icon">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="budget-info">
-                        <span class="budget-label">Spent</span>
-                        <span class="budget-amount" id="totalSpent">$0</span>
-                    </div>
-                </div>
-                
-                <div class="budget-card">
-                    <div class="budget-icon">
-                        <i class="fas fa-piggy-bank"></i>
-                    </div>
-                    <div class="budget-info">
-                        <span class="budget-label">Remaining</span>
-                        <span class="budget-amount" id="remainingBudget">$0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="expense-categories" id="expenseCategories">
-                <!-- Expense categories will be dynamically inserted here -->
-            </div>
-        </section>
-
-        <!-- Documents View -->
-        <section id="documents" class="view-section">
-            <div class="documents-header">
-                <h2>Travel Documents</h2>
-                <button class="btn-secondary" id="uploadDocument">
-                    <i class="fas fa-upload"></i> Upload Document
-                </button>
-            </div>
-            
-            <div class="documents-grid" id="documentsGrid">
-                <!-- Document cards will be dynamically inserted here -->
-            </div>
-        </section>
-
-        <!-- Checklist View -->
-        <section id="checklist" class="view-section">
-            <div class="checklist-header">
-                <h2>Travel Checklist</h2>
-                <button class="btn-secondary" id="addChecklistItem">
-                    <i class="fas fa-plus"></i> Add Item
-                </button>
-            </div>
-            
-            <div class="checklist-container">
-                <div class="checklist-section">
-                    <h3>Pre-Trip Tasks</h3>
-                    <ul class="checklist" id="preTripChecklist">
-                        <!-- Checklist items will be dynamically inserted here -->
-                    </ul>
-                </div>
-                
-                <div class="checklist-section">
-                    <h3>Packing List</h3>
-                    <ul class="checklist" id="packingChecklist">
-                        <!-- Checklist items will be dynamically inserted here -->
-                    </ul>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Modals -->
-    <!-- New Trip Modal -->
-    <div class="modal" id="newTripModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create New Trip</h3>
-                <button class="modal-close" data-modal="newTripModal">&times;</button>
-            </div>
-            <form id="newTripForm" class="modal-form">
-                <div class="form-group">
-                    <label for="tripName">Trip Name *</label>
-                    <input type="text" id="tripName" name="tripName" required>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="destination">Destination *</label>
-                        <input type="text" id="destination" name="destination" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="tripType">Trip Type</label>
-                        <select id="tripType" name="tripType">
-                            <option value="leisure">Leisure</option>
-                            <option value="business">Business</option>
-                            <option value="adventure">Adventure</option>
-                            <option value="family">Family</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="startDate">Start Date *</label>
-                        <input type="date" id="startDate" name="startDate" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="endDate">End Date *</label>
-                        <input type="date" id="endDate" name="endDate" required>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="budget">Budget ($)</label>
-                    <input type="number" id="budget" name="budget" min="0" step="0.01">
-                </div>
-                
-                <div class="form-group">
-                    <label for="notes">Notes</label>
-                    <textarea id="notes" name="notes" rows="3"></textarea>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" data-modal="newTripModal">Cancel</button>
-                    <button type="submit" class="btn-primary">Create Trip</button>
-                </div>
+                <button type="submit" class="auth-submit">Sign Up</button>
             </form>
-        </div>
-    </div>
-
-    <!-- Add Activity Modal -->
-    <div class="modal" id="activityModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Activity</h3>
-                <button class="modal-close" data-modal="activityModal">&times;</button>
+            <div class="auth-divider">OR</div>
+            <button class="google-signin" onclick="googleSignIn()">
+                <i class="fab fa-google"></i> Sign up with Google
+            </button>
+            <div class="auth-switch">
+                Already have an account? <a onclick="showLogin()">Login</a>
             </div>
-            <form id="activityForm" class="modal-form">
-                <div class="form-group">
-                    <label for="activityName">Activity Name *</label>
-                    <input type="text" id="activityName" name="activityName" required>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="activityDate">Date *</label>
-                        <input type="date" id="activityDate" name="activityDate" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="activityTime">Time</label>
-                        <input type="time" id="activityTime" name="activityTime">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="activityLocation">Location</label>
-                    <input type="text" id="activityLocation" name="activityLocation" placeholder="Enter address or place name">
-                </div>
-                
-                <div class="form-group">
-                    <label for="activityCategory">Category</label>
-                    <select id="activityCategory" name="activityCategory">
-                        <option value="transport">Transportation</option>
-                        <option value="accommodation">Accommodation</option>
-                        <option value="food">Food & Dining</option>
-                        <option value="activity">Activity</option>
-                        <option value="sightseeing">Sightseeing</option>
-                        <option value="shopping">Shopping</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="activityCost">Cost ($)</label>
-                    <input type="number" id="activityCost" name="activityCost" min="0" step="0.01">
-                </div>
-                
-                <div class="form-group">
-                    <label for="activityNotes">Notes</label>
-                    <textarea id="activityNotes" name="activityNotes" rows="3"></textarea>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" data-modal="activityModal">Cancel</button>
-                    <button type="submit" class="btn-primary">Add Activity</button>
-                </div>
-            </form>
         </div>
     </div>
 
-    <!-- Loading Spinner -->
-    <div class="loading-spinner" id="loadingSpinner">
-        <div class="spinner"></div>
-    </div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
 
-    <!-- Toast Notifications -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- External Scripts -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <!-- Main Application Scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/app.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        // Demo mode function
+        function startDemoMode() {
+            localStorage.setItem('demoMode', 'true');
+            localStorage.setItem('userToken', 'demo_token');
+            localStorage.setItem('userEmail', 'demo@tripsync.com');
+            localStorage.setItem('userName', 'Demo User');
+            window.location.href = 'dashboard.html';
+        }
+        
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('userToken')) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
 </body>
 </html>
