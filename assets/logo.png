@@ -1,4 +1,87 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#667eea"/>
-  <text x="100" y="100" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">TS</text>
-</svg>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logo Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="200" height="200"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 200, 200);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 200, 200);
+        
+        // Draw airplane icon
+        ctx.fillStyle = 'white';
+        ctx.save();
+        ctx.translate(100, 80);
+        ctx.rotate(-Math.PI / 6);
+        
+        // Airplane body
+        ctx.beginPath();
+        ctx.moveTo(-5, 0);
+        ctx.lineTo(5, 0);
+        ctx.lineTo(8, -30);
+        ctx.lineTo(0, -35);
+        ctx.lineTo(-8, -30);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Wings
+        ctx.beginPath();
+        ctx.moveTo(-30, -10);
+        ctx.lineTo(30, -10);
+        ctx.lineTo(25, -20);
+        ctx.lineTo(-25, -20);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Tail
+        ctx.beginPath();
+        ctx.moveTo(-15, 5);
+        ctx.lineTo(15, 5);
+        ctx.lineTo(10, -5);
+        ctx.lineTo(-10, -5);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.restore();
+        
+        // Draw map pin
+        ctx.save();
+        ctx.translate(100, 120);
+        
+        // Pin shape
+        ctx.beginPath();
+        ctx.arc(0, 0, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(-15, 5);
+        ctx.lineTo(0, 30);
+        ctx.lineTo(15, 5);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Inner circle
+        ctx.fillStyle = '#667eea';
+        ctx.beginPath();
+        ctx.arc(0, 0, 7, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+        
+        // Add text
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 24px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('TripSync', 100, 165);
+        
+        // Convert to base64
+        const dataURL = canvas.toDataURL('image/png');
+        console.lo
