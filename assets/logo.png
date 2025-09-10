@@ -1,87 +1,31 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Logo Generator</title>
-</head>
-<body>
-    <canvas id="canvas" width="200" height="200"></canvas>
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Background gradient
-        const gradient = ctx.createLinearGradient(0, 0, 200, 200);
-        gradient.addColorStop(0, '#667eea');
-        gradient.addColorStop(1, '#764ba2');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 200, 200);
-        
-        // Draw airplane icon
-        ctx.fillStyle = 'white';
-        ctx.save();
-        ctx.translate(100, 80);
-        ctx.rotate(-Math.PI / 6);
-        
-        // Airplane body
-        ctx.beginPath();
-        ctx.moveTo(-5, 0);
-        ctx.lineTo(5, 0);
-        ctx.lineTo(8, -30);
-        ctx.lineTo(0, -35);
-        ctx.lineTo(-8, -30);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Wings
-        ctx.beginPath();
-        ctx.moveTo(-30, -10);
-        ctx.lineTo(30, -10);
-        ctx.lineTo(25, -20);
-        ctx.lineTo(-25, -20);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Tail
-        ctx.beginPath();
-        ctx.moveTo(-15, 5);
-        ctx.lineTo(15, 5);
-        ctx.lineTo(10, -5);
-        ctx.lineTo(-10, -5);
-        ctx.closePath();
-        ctx.fill();
-        
-        ctx.restore();
-        
-        // Draw map pin
-        ctx.save();
-        ctx.translate(100, 120);
-        
-        // Pin shape
-        ctx.beginPath();
-        ctx.arc(0, 0, 15, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(-15, 5);
-        ctx.lineTo(0, 30);
-        ctx.lineTo(15, 5);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Inner circle
-        ctx.fillStyle = '#667eea';
-        ctx.beginPath();
-        ctx.arc(0, 0, 7, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.restore();
-        
-        // Add text
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 24px Arial, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('TripSync', 100, 165);
-        
-        // Convert to base64
-        const dataURL = canvas.toDataURL('image/png');
-        console.lo
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" rx="20" fill="url(#grad1)"/>
+  
+  <!-- Airplane icon -->
+  <g transform="translate(100, 70) rotate(-25)">
+    <!-- Airplane body -->
+    <path d="M -5 0 L 5 0 L 8 -30 L 0 -35 L -8 -30 Z" fill="white"/>
+    <!-- Wings -->
+    <path d="M -30 -10 L 30 -10 L 25 -20 L -25 -20 Z" fill="white"/>
+    <!-- Tail -->
+    <path d="M -15 5 L 15 5 L 10 -5 L -10 -5 Z" fill="white"/>
+  </g>
+  
+  <!-- Map pin -->
+  <g transform="translate(100, 120)">
+    <circle cx="0" cy="0" r="15" fill="white"/>
+    <path d="M -15 5 L 0 30 L 15 5 Z" fill="white"/>
+    <circle cx="0" cy="0" r="7" fill="#667eea"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="100" y="165" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white" text-anchor="middle">TripSync</text>
+</svg>
