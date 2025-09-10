@@ -1,0 +1,82 @@
+{
+  "name": "tripsync-travel-planner",
+  "version": "2.0.0",
+  "description": "Smart travel itinerary manager with real-time collaboration",
+  "main": "js/app.js",
+  "scripts": {
+    "start": "http-server -p 8080",
+    "dev": "http-server -p 8080 -c-1",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "lint": "eslint js/**/*.js",
+    "lint:fix": "eslint js/**/*.js --fix",
+    "format": "prettier --write \"**/*.{js,html,css,json,md}\"",
+    "test": "jest",
+    "deploy": "firebase deploy",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:hosting": "firebase deploy --only hosting"
+  },
+  "keywords": [
+    "travel",
+    "itinerary",
+    "planner",
+    "firebase",
+    "pwa"
+  ],
+  "author": "Julie Yingst",
+  "license": "MIT",
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "babel-loader": "^9.1.3",
+    "css-loader": "^6.8.1",
+    "eslint": "^8.51.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "firebase-tools": "^12.7.0",
+    "html-webpack-plugin": "^5.5.3",
+    "http-server": "^14.1.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3",
+    "style-loader": "^3.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1",
+    "workbox-webpack-plugin": "^7.0.0"
+  },
+  "eslintConfig": {
+    "extends": "airbnb-base",
+    "env": {
+      "browser": true,
+      "es2021": true
+    },
+    "globals": {
+      "firebase": "readonly",
+      "google": "readonly",
+      "L": "readonly",
+      "XLSX": "readonly"
+    },
+    "rules": {
+      "no-console": "off",
+      "no-alert": "off",
+      "no-unused-vars": "warn",
+      "prefer-const": "warn"
+    }
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "semi": true,
+    "printWidth": 100
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
