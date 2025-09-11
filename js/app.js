@@ -778,5 +778,135 @@ function handleDocumentUpload() {
 }
 
 function handleAddChecklistItem() {
-    const t
+    const text = prompt('Enter checklist item:');
+    if (!text) return;
+    
+    const item = {
+        id: generateId(),
+        text: text,
+        completed: false,
+        category: 'packing' // Default to packing
+    };
+    
+    AppState.checklists.packing.push(item);
+    storage.save('checklists', AppState.checklists);
+    renderChecklist();
 }
+
+function toggleChecklistItem(itemId) {
+    // Find and toggle item
+    ['preTrip', 'packing'].forEach(category => {
+        const item = AppState.checklists[category].find(i => i.id === itemId);
+        if (item) {
+            item.completed = !item.completed;
+            storage.save('checklists', AppState.checklists);
+        }
+    });
+}
+
+function handleKeyboardShortcuts(e) {
+    // Ctrl/Cmd + N: New trip
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        openModal('newTripModal');
+    }
+    
+    // Escape: Close modal
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.active').forEach(modal => {
+            closeModal(modal.id);
+        });
+    }
+}
+
+// Utility Functions
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+
+function formatDate(date, format = 'short') {
+    if (!date) return '';
+    const d = new Date(date);
+    
+    if (format === 'full') {
+        return d.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+    
+    return d.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: AppState.user.currency
+    }).format(amount || 0);
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function getDocumentIcon(type) {
+    if (type.includes('pdf')) return 'fa-file-pdf';
+    if (type.includes('image')) return 'fa-file-image';
+    if (type.includes('word')) return 'fa-file-word';
+    return 'fa-file-alt';
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas ${getToastIcon(type)}"></i>
+        </div>
+        <div class="toast-message">${message}</div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function getToastIcon(type) {
+    switch(type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
+    }
+}
+
+// Export functions for global access
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.selectTrip = selectTrip;
+window.handleDocumentUpload = handleDocumentUpload;
+window.handleAddChecklistItem = handleAddChecklistItem;
+window.toggleChecklistItem = toggleChecklistItem;
