@@ -11,18 +11,17 @@ const Config = {
         website: 'https://travel.julieyingst.com'
     },
     
-    // API Keys (DO NOT COMMIT REAL KEYS)
-    // These should be environment variables in production
+    // API Keys (Empty for now - add your own if needed)
     api: {
-        mapbox: process.env.MAPBOX_API_KEY || '',
+        mapbox: '',
         google: {
-            maps: process.env.GOOGLE_MAPS_API_KEY || '',
-            calendar: process.env.GOOGLE_CALENDAR_API_KEY || '',
-            places: process.env.GOOGLE_PLACES_API_KEY || ''
+            maps: '',
+            calendar: '',
+            places: ''
         },
-        openWeather: process.env.OPENWEATHER_API_KEY || '',
-        unsplash: process.env.UNSPLASH_API_KEY || '',
-        exchangeRates: process.env.EXCHANGE_RATES_API_KEY || ''
+        openWeather: '',
+        unsplash: '',
+        exchangeRates: ''
     },
     
     // Storage Configuration
@@ -135,7 +134,7 @@ const Config = {
             enableTime: false,
             dateFormat: 'Y-m-d',
             minDate: 'today',
-            maxDate: new Date().fp_incr(730) // 2 years
+            maxDate: null
         }
     },
     
@@ -226,8 +225,3 @@ const Config = {
 
 // Freeze configuration to prevent modifications
 Object.freeze(Config);
-
-// Export for use in other modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Config;
-}
