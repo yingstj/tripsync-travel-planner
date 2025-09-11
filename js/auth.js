@@ -5,7 +5,7 @@ function showLogin() {
     const modal = document.getElementById('loginModal');
     if (modal) {
         // Try both methods for compatibility
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
         modal.classList.add('active');
     }
 }
@@ -25,7 +25,7 @@ function showSignup() {
     hideLogin();
     const modal = document.getElementById('signupModal');
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
         modal.classList.add('active');
     }
 }
@@ -92,61 +92,63 @@ function login(event) {
     }
     
     // Get the button that was clicked
-    const loginBtn = event && event.target ? event.target : document.querySelector('#loginModal button[onclick*="login"]');
-    const originalText = loginBtn.textContent;
-    loginBtn.textContent = 'Logging in...';
-    loginBtn.disabled = true;
-    
-    // Check if Firebase is configured
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-        // Use Firebase authentication
-        firebase.auth().signInWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                // Signed in successfully
-                localStorage.setItem('userToken', userCredential.user.uid);
-                localStorage.setItem('userEmail', email);
-                localStorage.removeItem('demoMode');
-                showNotification('Login successful!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-            })
-            .catch((error) => {
-                loginBtn.textContent = originalText;
-                loginBtn.disabled = false;
-                
-                // Enhanced error logging for debugging (without sensitive data)
-                console.error('Auth error', {
-                    code: error.code,
-                    message: error.message
+    const loginBtn = event && event.target ? event.target.querySelector('button[type="submit"]') : document.querySelector('#loginModal button[type="submit"]');
+    if (loginBtn) {
+        const originalText = loginBtn.textContent;
+        loginBtn.textContent = 'Logging in...';
+        loginBtn.disabled = true;
+        
+        // Check if Firebase is configured
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            // Use Firebase authentication
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in successfully
+                    localStorage.setItem('userToken', userCredential.user.uid);
+                    localStorage.setItem('userEmail', email);
+                    localStorage.removeItem('demoMode');
+                    showNotification('Login successful!', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                })
+                .catch((error) => {
+                    loginBtn.textContent = originalText;
+                    loginBtn.disabled = false;
+                    
+                    // Enhanced error logging for debugging (without sensitive data)
+                    console.error('Auth error', {
+                        code: error.code,
+                        message: error.message
+                    });
+                    
+                    // Handle specific error codes
+                    let errorMessage = 'Login failed';
+                    switch(error.code) {
+                        case 'auth/user-not-found':
+                            errorMessage = 'No account found with this email. Please sign up first.';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage = 'Incorrect password. Please try again.';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage = 'Invalid email address format.';
+                            break;
+                        case 'auth/user-disabled':
+                            errorMessage = 'This account has been disabled.';
+                            break;
+                        default:
+                            errorMessage = error.message;
+                    }
+                    showNotification(errorMessage, 'error');
                 });
-                
-                // Handle specific error codes
-                let errorMessage = 'Login failed';
-                switch(error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage = 'No account found with this email. Please sign up first.';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage = 'Incorrect password. Please try again.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Invalid email address format.';
-                        break;
-                    case 'auth/user-disabled':
-                        errorMessage = 'This account has been disabled.';
-                        break;
-                    default:
-                        errorMessage = error.message;
-                }
-                showNotification(errorMessage, 'error');
-            });
-    } else {
-        // Demo mode - just save credentials locally
-        localStorage.setItem('userToken', 'demo_token');
-        localStorage.setItem('userEmail', email);
-        localStorage.removeItem('demoMode');
-        window.location.href = 'dashboard.html';
+        } else {
+            // Demo mode - just save credentials locally
+            localStorage.setItem('userToken', 'demo_token');
+            localStorage.setItem('userEmail', email);
+            localStorage.removeItem('demoMode');
+            window.location.href = 'dashboard.html';
+        }
     }
 }
 
@@ -179,67 +181,69 @@ function signup(event) {
     }
     
     // Get the button that was clicked
-    const signupBtn = event && event.target ? event.target : document.querySelector('#signupModal button[onclick*="signup"]');
-    const originalText = signupBtn.textContent;
-    signupBtn.textContent = 'Creating account...';
-    signupBtn.disabled = true;
-    
-    // Create account with Firebase
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                // Update display name
-                return userCredential.user.updateProfile({
-                    displayName: name
-                });
-            })
-            .then(() => {
-                // Account created successfully
-                const user = firebase.auth().currentUser;
-                localStorage.setItem('userToken', user.uid);
-                localStorage.setItem('userEmail', email);
-                localStorage.setItem('userName', name);
-                localStorage.removeItem('demoMode');
-                
-                // Save user data to Firestore
-                if (firebase.firestore) {
-                    firebase.firestore().collection('users').doc(user.uid).set({
-                        name: name,
-                        email: email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    const signupBtn = event && event.target ? event.target.querySelector('button[type="submit"]') : document.querySelector('#signupModal button[type="submit"]');
+    if (signupBtn) {
+        const originalText = signupBtn.textContent;
+        signupBtn.textContent = 'Creating account...';
+        signupBtn.disabled = true;
+        
+        // Create account with Firebase
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Update display name
+                    return userCredential.user.updateProfile({
+                        displayName: name
                     });
-                }
-                
-                showNotification('Account created successfully!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-            })
-            .catch((error) => {
-                signupBtn.textContent = originalText;
-                signupBtn.disabled = false;
-                
-                // Handle specific error codes
-                let errorMessage = 'Signup failed';
-                switch(error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'An account with this email already exists.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Invalid email address format.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = 'Password is too weak. Please use at least 6 characters.';
-                        break;
-                    default:
-                        errorMessage = error.message;
-                }
-                showNotification(errorMessage, 'error');
-            });
-    } else {
-        showNotification('Firebase is not configured. Please try demo mode.', 'error');
-        signupBtn.textContent = originalText;
-        signupBtn.disabled = false;
+                })
+                .then(() => {
+                    // Account created successfully
+                    const user = firebase.auth().currentUser;
+                    localStorage.setItem('userToken', user.uid);
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('userName', name);
+                    localStorage.removeItem('demoMode');
+                    
+                    // Save user data to Firestore
+                    if (firebase.firestore) {
+                        firebase.firestore().collection('users').doc(user.uid).set({
+                            name: name,
+                            email: email,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                    
+                    showNotification('Account created successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                })
+                .catch((error) => {
+                    signupBtn.textContent = originalText;
+                    signupBtn.disabled = false;
+                    
+                    // Handle specific error codes
+                    let errorMessage = 'Signup failed';
+                    switch(error.code) {
+                        case 'auth/email-already-in-use':
+                            errorMessage = 'An account with this email already exists.';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage = 'Invalid email address format.';
+                            break;
+                        case 'auth/weak-password':
+                            errorMessage = 'Password is too weak. Please use at least 6 characters.';
+                            break;
+                        default:
+                            errorMessage = error.message;
+                    }
+                    showNotification(errorMessage, 'error');
+                });
+        } else {
+            showNotification('Firebase is not configured. Please try demo mode.', 'error');
+            signupBtn.textContent = originalText;
+            signupBtn.disabled = false;
+        }
     }
 }
 
@@ -288,7 +292,7 @@ function googleSignIn() {
     }
 }
 
-// Logout function (for use in app.html)
+// Logout function (for use in dashboard.html)
 function logout() {
     if (typeof firebase !== 'undefined' && firebase.auth) {
         firebase.auth().signOut();
@@ -401,11 +405,16 @@ window.onclick = function(event) {
     
     if (event.target == loginModal) {
         loginModal.classList.remove('active');
+        loginModal.style.display = 'none';
     }
     if (event.target == signupModal) {
         signupModal.classList.remove('active');
+        signupModal.style.display = 'none';
     }
 }
+
+// Export logout function for global access
+window.logout = logout;
 
 // Log when script loads
 console.log('Auth.js loaded successfully');
