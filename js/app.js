@@ -1,6 +1,4 @@
-// TripSync - Complete Enhanced JavaScript with Bug Fixes
-// Main application logic with improved error handling and data persistence
-
+// TripSync - Main Application
 // Application State
 const AppState = {
     currentView: 'dashboard',
@@ -22,6 +20,9 @@ const AppState = {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     }
 };
+
+// Get storage instance from storage.js
+const storage = Storage || new StorageManager();
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
@@ -55,103 +56,6 @@ function detectUserTimezone() {
         AppState.user.timezone = 'UTC';
     }
 }
-
-// Enhanced Storage with IndexedDB
-class StorageManager {
-    constructor() {
-        this.dbName = 'TripSyncDB';
-        this.dbVersion = 1;
-        this.db = null;
-        this.initDB();
-    }
-    
-    async initDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, this.dbVersion);
-            
-            request.onerror = () => {
-                console.error('IndexedDB error:', request.error);
-                reject(request.error);
-            };
-            
-            request.onsuccess = () => {
-                this.db = request.result;
-                resolve(this.db);
-            };
-            
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                
-                // Create object stores
-                if (!db.objectStoreNames.contains('trips')) {
-                    const tripStore = db.createObjectStore('trips', { keyPath: 'id' });
-                    tripStore.createIndex('status', 'status', { unique: false });
-                    tripStore.createIndex('startDate', 'startDate', { unique: false });
-                }
-                
-                if (!db.objectStoreNames.contains('activities')) {
-                    const activityStore = db.createObjectStore('activities', { keyPath: 'id' });
-                    activityStore.createIndex('tripId', 'tripId', { unique: false });
-                    activityStore.createIndex('date', 'date', { unique: false });
-                }
-                
-                if (!db.objectStoreNames.contains('expenses')) {
-                    const expenseStore = db.createObjectStore('expenses', { keyPath: 'id' });
-                    expenseStore.createIndex('tripId', 'tripId', { unique: false });
-                    expenseStore.createIndex('category', 'category', { unique: false });
-                }
-                
-                if (!db.objectStoreNames.contains('documents')) {
-                    const docStore = db.createObjectStore('documents', { keyPath: 'id' });
-                    docStore.createIndex('tripId', 'tripId', { unique: false });
-                }
-                
-                if (!db.objectStoreNames.contains('checklists')) {
-                    db.createObjectStore('checklists', { keyPath: 'id' });
-                }
-            };
-        });
-    }
-    
-    async save(storeName, data) {
-        await this.initDB();
-        const transaction = this.db.transaction([storeName], 'readwrite');
-        const store = transaction.objectStore(storeName);
-        return store.put(data);
-    }
-    
-    async get(storeName, id) {
-        await this.initDB();
-        const transaction = this.db.transaction([storeName], 'readonly');
-        const store = transaction.objectStore(storeName);
-        return new Promise((resolve, reject) => {
-            const request = store.get(id);
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
-    }
-    
-    async getAll(storeName) {
-        await this.initDB();
-        const transaction = this.db.transaction([storeName], 'readonly');
-        const store = transaction.objectStore(storeName);
-        return new Promise((resolve, reject) => {
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
-    }
-    
-    async delete(storeName, id) {
-        await this.initDB();
-        const transaction = this.db.transaction([storeName], 'readwrite');
-        const store = transaction.objectStore(storeName);
-        return store.delete(id);
-    }
-}
-
-// Initialize Storage Manager
-const storage = new StorageManager();
 
 // Load Data from Storage
 async function loadDataFromStorage() {
@@ -327,9 +231,8 @@ function renderCurrentView() {
                 break;
         }
     }
-}
 
-// Dashboard Rendering
+    // Dashboard Rendering
 function renderDashboard() {
     const grid = document.getElementById('tripsGrid');
     if (!grid) return;
@@ -875,143 +778,5 @@ function handleDocumentUpload() {
 }
 
 function handleAddChecklistItem() {
-    const text = prompt('Enter checklist item:');
-    if (!text) return;
-    
-    const item = {
-        id: generateId(),
-        text: text,
-        completed: false,
-        category: 'packing' // Default to packing
-    };
-    
-    AppState.checklists.packing.push(item);
-    storage.save('checklists', AppState.checklists);
-    renderChecklist();
+    const t
 }
-
-function toggleChecklistItem(itemId) {
-    // Find and toggle item
-    ['preTrip', 'packing'].forEach(category => {
-        const item = AppState.checklists[category].find(i => i.id === itemId);
-        if (item) {
-            item.completed = !item.completed;
-            storage.save('checklists', AppState.checklists);
-        }
-    });
-}
-
-function handleKeyboardShortcuts(e) {
-    // Ctrl/Cmd + N: New trip
-    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        openModal('newTripModal');
-    }
-    
-    // Escape: Close modal
-    if (e.key === 'Escape') {
-        document.querySelectorAll('.modal.active').forEach(modal => {
-            closeModal(modal.id);
-        });
-    }
-}
-
-// Utility Functions
-function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text || '';
-    return div.innerHTML;
-}
-
-function formatDate(date, format = 'short') {
-    if (!date) return '';
-    const d = new Date(date);
-    
-    if (format === 'full') {
-        return d.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-    }
-    
-    return d.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-    });
-}
-
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: AppState.user.currency
-    }).format(amount || 0);
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-}
-
-function getDocumentIcon(type) {
-    if (type.includes('pdf')) return 'fa-file-pdf';
-    if (type.includes('image')) return 'fa-file-image';
-    if (type.includes('word')) return 'fa-file-word';
-    return 'fa-file-alt';
-}
-
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="fas ${getToastIcon(type)}"></i>
-        </div>
-        <div class="toast-message">${message}</div>
-    `;
-    
-    container.appendChild(toast);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        toast.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-function getToastIcon(type) {
-    switch(type) {
-        case 'success': return 'fa-check-circle';
-        case 'error': return 'fa-exclamation-circle';
-        case 'warning': return 'fa-exclamation-triangle';
-        default: return 'fa-info-circle';
-    }
-}
-
-// Initialize map function
-function initializeMap() {
-    // This will be called when the map view is first accessed
-    if (typeof L !== 'undefined' && document.getElementById('mapContainer')) {
-        // Map initialization handled in renderMap()
-    }
-}
-
-// Export functions for global access
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.selectTrip = selectTrip;
-window.handleDocumentUpload = handleDocumentUpload;
-window.handleAddChecklistItem = handleAddChecklistItem;
-window.toggleChecklistItem = toggleChecklistItem;
