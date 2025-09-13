@@ -68,12 +68,6 @@
             font-weight: bold;
         }
         
-        .btn-demo {
-            background: transparent;
-            color: white;
-            border: 2px solid white !important;
-        }
-        
         /* Modal Styles */
         .auth-modal {
             display: none;
@@ -205,7 +199,6 @@
             <p>Plan, organize, and track your perfect trips with timeline views, interactive maps, and budget tracking</p>
             <div class="hero-buttons">
                 <button class="btn-get-started" onclick="showLogin()">Get Started</button>
-                <button class="btn-demo" onclick="startDemoMode()">Try Demo</button>
             </div>
         </div>
     </div>
@@ -281,15 +274,6 @@
     <script src="js/auth.js"></script>
     
     <script>
-        // Demo mode function
-        function startDemoMode() {
-            localStorage.setItem('demoMode', 'true');
-            localStorage.setItem('userToken', 'demo_token');
-            localStorage.setItem('userEmail', 'demo@tripsync.com');
-            localStorage.setItem('userName', 'Demo User');
-            window.location.href = 'dashboard.html';
-        }
-        
         // Check if user is already logged in
         document.addEventListener('DOMContentLoaded', function() {
             if (localStorage.getItem('userToken')) {

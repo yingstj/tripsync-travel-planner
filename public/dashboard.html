@@ -13,7 +13,7 @@
     <link rel="icon" type="image/png" href="assets/favicon.png">
     
     <!-- External Libraries -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Removed Leaflet CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -44,7 +44,7 @@
                 <button class="btn-primary" id="newTrip">
                     <i class="fas fa-plus"></i> New Trip
                 </button>
-                <button class="btn-secondary" onclick="logout()">
+                <button class="btn-secondary" id="logoutButton">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
@@ -119,7 +119,7 @@
                 </div>
             </div>
             <div id="mapContainer" class="map-container">
-                <!-- Leaflet map will be rendered here -->
+                <!-- Google Map will be rendered here -->
             </div>
         </section>
 
@@ -347,19 +347,33 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
 
     <!-- External Scripts -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Removed Leaflet JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Google Maps Platform JS API (loaded asynchronously) -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDHfXBVIXa50808Lg2ZoEA6tl4nwYCs8KY&libraries=places&callback=initMapScript"></script>
+
     <!-- Main Application Scripts -->
     <script src="firebase-config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/config.js"></script>
     <script src="js/storage.js"></script>
+    <script src="js/trips.js"></script>
+    <script src="js/activities.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/calendar.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/app.js"></script>
     
     <script>
+        // Callback function for Google Maps API to ensure it's loaded before map.js attempts to use it
+        function initMapScript() {
+            console.log("Google Maps API loaded.");
+            // Any initial map-related setup that depends on the Google Maps API being ready can go here
+            // The renderMap function in map.js will be called by app.js when navigating to the map view.
+        }
+
         // Check authentication on page load
         document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('userToken')) {

@@ -4,7 +4,7 @@
 class StorageManager {
     constructor() {
         this.dbName = 'TripSyncDB';
-        this.dbVersion = 1;
+        this.dbVersion = 2;
         this.db = null;
         this.isIndexedDBAvailable = this.checkIndexedDB();
         this.prefix = 'tripsync_';
@@ -63,6 +63,7 @@ class StorageManager {
                 // Create object stores
                 const stores = [
                     { name: 'trips', keyPath: 'id', indexes: [
+                        { name: 'userId', keyPath: 'userId', unique: false },
                         { name: 'status', keyPath: 'status', unique: false },
                         { name: 'startDate', keyPath: 'startDate', unique: false },
                         { name: 'destination', keyPath: 'destination', unique: false }
