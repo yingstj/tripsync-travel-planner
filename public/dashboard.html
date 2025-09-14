@@ -4,382 +4,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TripSync - Dashboard</title>
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Plan your perfect trip with TripSync - Timeline view, calendar integration, interactive maps, and budget tracking">
-    <meta name="author" content="Julie Yingst">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/favicon.png">
-    
-    <!-- External Libraries -->
-    <!-- Removed Leaflet CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
-                <i class="fas fa-map-marked-alt"></i>
-                <span>TripSync</span>
-            </div>
+            <div class="nav-brand"><i class="fas fa-map-marked-alt"></i><span>TripSync</span></div>
             <ul class="nav-menu">
                 <li><a href="#dashboard" class="nav-link active" data-view="dashboard">Dashboard</a></li>
-                <li><a href="#timeline" class="nav-link" data-view="timeline">Timeline</a></li>
-                <li><a href="#calendar" class="nav-link" data-view="calendar">Calendar</a></li>
-                <li><a href="#map" class="nav-link" data-view="map">Map</a></li>
-                <li><a href="#budget" class="nav-link" data-view="budget">Budget</a></li>
-                <li><a href="#documents" class="nav-link" data-view="documents">Documents</a></li>
-                <li><a href="#checklist" class="nav-link" data-view="checklist">Checklist</a></li>
+                <li><a href="#planner" class="nav-link" data-view="planner">Planner</a></li>
+                <li><a href="#profile" class="nav-link" data-view="profile">Profile</a></li>
             </ul>
             <div class="nav-actions">
-                <button class="btn-share" id="shareTrip">
-                    <i class="fas fa-share-alt"></i> Share
-                </button>
-                <button class="btn-primary" id="newTrip">
-                    <i class="fas fa-plus"></i> New Trip
-                </button>
-                <button class="btn-secondary" id="logoutButton">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <button class="btn-primary" id="newTrip"><i class="fas fa-plus"></i> New Trip</button>
+                <button class="btn-secondary" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
-            <button class="nav-toggle" id="navToggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
         </div>
     </nav>
 
-    <!-- Main Container -->
     <main class="main-container">
-        <!-- Dashboard View -->
         <section id="dashboard" class="view-section active">
-            <div class="dashboard-header">
-                <h1>My Trips</h1>
-                <div class="dashboard-filters">
-                    <select id="tripFilter" class="filter-select">
-                        <option value="all">All Trips</option>
-                        <option value="upcoming">Upcoming</option>
-                        <option value="past">Past</option>
-                        <option value="draft">Draft</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="trips-grid" id="tripsGrid">
-                <!-- Trip cards will be dynamically inserted here -->
-            </div>
+            <div class="dashboard-header"><h1>My Trips</h1></div>
+            <div class="trips-grid" id="tripsGrid"></div>
         </section>
 
-        <!-- Timeline View -->
-        <section id="timeline" class="view-section">
-            <div class="timeline-header">
-                <h2>Trip Timeline</h2>
-                <button class="btn-secondary" id="addActivity">
-                    <i class="fas fa-plus"></i> Add Activity
-                </button>
-            </div>
-            <div class="timeline-container" id="timelineContainer">
-                <!-- Timeline items will be dynamically inserted here -->
-            </div>
+        <section id="planner" class="view-section">
+             <div class="planner-header"><h1 id="plannerTripName"></h1></div>
+             <div class="planner-grid">
+                 <div class="planner-suggestions-panel">
+                     <h2>Suggestions</h2>
+                     <div id="pointsOfInterestContainer" class="poi-container"></div>
+                     <hr>
+                     <h2>Custom Activity</h2>
+                     <form id="customActivityForm" class="modal-form">
+                         <div class="form-group"><label for="customActivityName">Activity Name</label><input type="text" id="customActivityName" required></div>
+                         <div class="form-group"><label for="customActivityLocation">Location (optional)</label><input type="text" id="customActivityLocation" placeholder="e.g., Eiffel Tower"></div>
+                         <button type="submit" class="btn-primary">Add to Itinerary</button>
+                     </form>
+                 </div>
+                 <div class="planner-timeline-panel">
+                     <h2>Itinerary</h2>
+                     <div class="unscheduled-activities">
+                         <h3>Unscheduled</h3>
+                         <div id="unscheduledItems" class="timeline-items unscheduled-drop-zone" ondragover="event.preventDefault()" ondrop="handleDrop(event)" data-date="null"></div>
+                     </div>
+                     <div id="plannerTimelineContainer"></div>
+                 </div>
+             </div>
         </section>
 
-        <!-- Calendar View -->
-        <section id="calendar" class="view-section">
-            <div class="calendar-header">
-                <h2>Trip Calendar</h2>
-                <div class="calendar-controls">
-                    <button id="calPrev"><i class="fas fa-chevron-left"></i></button>
-                    <span id="calendarMonth"></span>
-                    <button id="calNext"><i class="fas fa-chevron-right"></i></button>
-                </div>
-            </div>
-            <div id="calendarContainer" class="calendar-container">
-                <!-- Calendar will be rendered here -->
-            </div>
-        </section>
-
-        <!-- Map View -->
-        <section id="map" class="view-section">
-            <div class="map-header">
-                <h2>Trip Map</h2>
-                <div class="map-controls">
-                    <button id="centerMap" class="btn-icon" title="Center Map">
-                        <i class="fas fa-crosshairs"></i>
-                    </button>
-                    <button id="fullscreenMap" class="btn-icon" title="Fullscreen">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                </div>
-            </div>
-            <div id="mapContainer" class="map-container">
-                <!-- Google Map will be rendered here -->
-            </div>
-        </section>
-
-        <!-- Budget View -->
-        <section id="budget" class="view-section">
-            <div class="budget-header">
-                <h2>Trip Budget</h2>
-                <button class="btn-secondary" id="addExpense">
-                    <i class="fas fa-plus"></i> Add Expense
-                </button>
-            </div>
-            
-            <div class="budget-summary">
-                <div class="budget-card">
-                    <div class="budget-icon">
-                        <i class="fas fa-wallet"></i>
-                    </div>
-                    <div class="budget-info">
-                        <span class="budget-label">Total Budget</span>
-                        <span class="budget-amount" id="totalBudget">$0</span>
-                    </div>
-                </div>
-                
-                <div class="budget-card">
-                    <div class="budget-icon">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="budget-info">
-                        <span class="budget-label">Spent</span>
-                        <span class="budget-amount" id="totalSpent">$0</span>
-                    </div>
-                </div>
-                
-                <div class="budget-card">
-                    <div class="budget-icon">
-                        <i class="fas fa-piggy-bank"></i>
-                    </div>
-                    <div class="budget-info">
-                        <span class="budget-label">Remaining</span>
-                        <span class="budget-amount" id="remainingBudget">$0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="expense-categories" id="expenseCategories">
-                <!-- Expense categories will be dynamically inserted here -->
-            </div>
-        </section>
-
-        <!-- Documents View -->
-        <section id="documents" class="view-section">
-            <div class="documents-header">
-                <h2>Travel Documents</h2>
-                <button class="btn-secondary" id="uploadDocument">
-                    <i class="fas fa-upload"></i> Upload Document
-                </button>
-            </div>
-            
-            <div class="documents-grid" id="documentsGrid">
-                <!-- Document cards will be dynamically inserted here -->
-            </div>
-        </section>
-
-        <!-- Checklist View -->
-        <section id="checklist" class="view-section">
-            <div class="checklist-header">
-                <h2>Travel Checklist</h2>
-                <button class="btn-secondary" id="addChecklistItem">
-                    <i class="fas fa-plus"></i> Add Item
-                </button>
-            </div>
-            
-            <div class="checklist-container">
-                <div class="checklist-section">
-                    <h3>Pre-Trip Tasks</h3>
-                    <ul class="checklist" id="preTripChecklist">
-                        <!-- Checklist items will be dynamically inserted here -->
-                    </ul>
-                </div>
-                
-                <div class="checklist-section">
-                    <h3>Packing List</h3>
-                    <ul class="checklist" id="packingChecklist">
-                        <!-- Checklist items will be dynamically inserted here -->
-                    </ul>
-                </div>
-            </div>
+        <section id="profile" class="view-section">
+             <div class="profile-header"><h1>My Profile</h1></div>
+             <div class="profile-grid">
+                 <div class="profile-form-panel">
+                     <h2>Profile Information</h2>
+                     <form id="profileForm">
+                         <div class="form-group"><label for="userName">Username</label><input type="text" id="userName" name="userName" required></div>
+                         <div class="form-group"><label for="userEmail">Email</label><input type="email" id="userEmail" name="userEmail" disabled></div>
+                         <button type="submit" class="btn-primary">Save Profile</button>
+                     </form>
+                 </div>
+                 <div class="profile-preferences-panel">
+                     <h2>Travel Preferences</h2>
+                     <form id="preferencesForm">
+                         <div class="form-group"><label for="favoriteAirlines">Favorite Airlines</label><input type="text" id="favoriteAirlines"></div>
+                         <div class="form-group"><label for="favoriteHotels">Favorite Hotel Chains</label><input type="text" id="favoriteHotels"></div>
+                         <div class="form-group"><label for="travelStyle">Travel Style</label><select id="travelStyle"><option value="any">Any</option><option value="beach">Beach/Relaxation</option><option value="outdoors">Hiking/Outdoors</option><option value="sightseeing">Sightseeing</option></select></div>
+                         <button type="submit" class="btn-primary">Save Preferences</button>
+                     </form>
+                 </div>
+                 <div class="profile-bucket-list-panel">
+                     <h2>My Bucket List</h2>
+                     <form id="bucketListForm">
+                         <div class="form-group"><label for="bucketListItem">Add a place</label><input type="text" id="bucketListItem" placeholder="e.g., Tokyo, Japan"></div>
+                         <button type="submit" class="btn-secondary">Add</button>
+                     </form>
+                     <ul id="bucketList" class="bucket-list"></ul>
+                 </div>
+             </div>
         </section>
     </main>
 
-    <!-- Modals -->
-    <!-- New Trip Modal -->
     <div class="modal" id="newTripModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create New Trip</h3>
-                <button class="modal-close" data-modal="newTripModal">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Create New Trip</h3><button class="modal-close" data-modal="newTripModal">&times;</button></div>
             <form id="newTripForm" class="modal-form">
+                <div class="form-group"><label for="tripName">Trip Name *</label><input type="text" id="tripName" required></div>
                 <div class="form-group">
-                    <label for="tripName">Trip Name *</label>
-                    <input type="text" id="tripName" name="tripName" required>
+                    <label>Destinations *</label>
+                    <div id="destinationInputsContainer">
+                        <div class="destination-input-group"><input type="text" class="destination-input" placeholder="Enter destination" required><button type="button" class="btn-icon remove-destination-btn" style="display:none;"><i class="fas fa-times-circle"></i></button></div>
+                    </div>
+                    <button type="button" class="btn-secondary" id="addDestinationBtn"><i class="fas fa-plus"></i> Add Destination</button>
+                    <small id="destination-error" class="error-message" style="display: none;">Please select a valid location from the dropdown.</small>
                 </div>
-                
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="destination">Destination *</label>
-                        <input type="text" id="destination" name="destination" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="tripType">Trip Type</label>
-                        <select id="tripType" name="tripType">
-                            <option value="leisure">Leisure</option>
-                            <option value="business">Business</option>
-                            <option value="adventure">Adventure</option>
-                            <option value="family">Family</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label for="startDate">Start Date *</label><input type="date" id="startDate" required></div>
+                    <div class="form-group"><label for="endDate">End Date *</label><input type="date" id="endDate" required></div>
                 </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="startDate">Start Date *</label>
-                        <input type="date" id="startDate" name="startDate" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="endDate">End Date *</label>
-                        <input type="date" id="endDate" name="endDate" required>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="budget">Budget ($)</label>
-                    <input type="number" id="budget" name="budget" min="0" step="0.01">
-                </div>
-                
-                <div class="form-group">
-                    <label for="notes">Notes</label>
-                    <textarea id="notes" name="notes" rows="3"></textarea>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" data-modal="newTripModal">Cancel</button>
-                    <button type="submit" class="btn-primary">Create Trip</button>
-                </div>
+                <div class="form-group checkbox-group"><input type="checkbox" id="isTentative"><label for="isTentative">Tentative Dates</label></div>
+                <div class="form-actions"><button type="button" class="btn-secondary" data-modal="newTripModal">Cancel</button><button type="submit" class="btn-primary">Create Trip</button></div>
             </form>
         </div>
     </div>
-
-    <!-- Add Activity Modal -->
-    <div class="modal" id="activityModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Activity</h3>
-                <button class="modal-close" data-modal="activityModal">&times;</button>
-            </div>
-            <form id="activityForm" class="modal-form">
-                <div class="form-group">
-                    <label for="activityName">Activity Name *</label>
-                    <input type="text" id="activityName" name="activityName" required>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="activityDate">Date *</label>
-                        <input type="date" id="activityDate" name="activityDate" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="activityTime">Time</label>
-                        <input type="time" id="activityTime" name="activityTime">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="activityLocation">Location</label>
-                    <input type="text" id="activityLocation" name="activityLocation" placeholder="Enter address or place name">
-                </div>
-                
-                <div class="form-group">
-                    <label for="activityCategory">Category</label>
-                    <select id="activityCategory" name="activityCategory">
-                        <option value="transport">Transportation</option>
-                        <option value="accommodation">Accommodation</option>
-                        <option value="food">Food & Dining</option>
-                        <option value="activity">Activity</option>
-                        <option value="sightseeing">Sightseeing</option>
-                        <option value="shopping">Shopping</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="activityCost">Cost ($)</label>
-                    <input type="number" id="activityCost" name="activityCost" min="0" step="0.01">
-                </div>
-                
-                <div class="form-group">
-                    <label for="activityNotes">Notes</label>
-                    <textarea id="activityNotes" name="activityNotes" rows="3"></textarea>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" data-modal="activityModal">Cancel</button>
-                    <button type="submit" class="btn-primary">Add Activity</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Loading Spinner -->
-    <div class="loading-spinner" id="loadingSpinner">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Firebase SDK -->
+    
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
-
-    <!-- External Scripts -->
-    <!-- Removed Leaflet JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Google Maps Platform JS API (loaded asynchronously) -->
+    <!-- Google Maps API -->
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDHfXBVIXa50808Lg2ZoEA6tl4nwYCs8KY&libraries=places&callback=initMapScript"></script>
 
-    <!-- Main Application Scripts -->
+    <!-- Application Scripts -->
     <script src="firebase-config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/config.js"></script>
     <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script> 
     <script src="js/trips.js"></script>
     <script src="js/activities.js"></script>
     <script src="js/map.js"></script>
-    <script src="js/calendar.js"></script>
-    <script src="js/utils.js"></script>
     <script src="js/app.js"></script>
-    
-    <script>
-        // Callback function for Google Maps API to ensure it's loaded before map.js attempts to use it
-        function initMapScript() {
-            console.log("Google Maps API loaded.");
-            // Any initial map-related setup that depends on the Google Maps API being ready can go here
-            // The renderMap function in map.js will be called by app.js when navigating to the map view.
-        }
-
-        // Check authentication on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('userToken')) {
-                window.location.href = 'index.html';
-            }
-        });
-    </script>
 </body>
 </html>

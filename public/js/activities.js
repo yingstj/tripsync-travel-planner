@@ -1,7 +1,8 @@
+// Activity data management functions
 
 /**
  * Saves a new activity to storage.
- * @param {object} activityData The activity data to save.
+ * @param {object} activityData The activity data to save. Expected to have location, place_id, lat, lng.
  * @returns {Promise<object>} The saved activity object with a new ID.
  */
 async function saveActivityToStorage(activityData) {
@@ -42,5 +43,28 @@ async function fetchActivitiesFromStorage(tripId) {
     } catch (error) {
         console.error("Error fetching activities from storage:", error);
         throw new Error("Failed to fetch activities.");
+    }
+}
+/**
+ * Updates an existing activity in storage.
+ * @param {object} activityData The activity data to update. Must include the activity ID.
+ * @returns {Promise<object>} The updated activity object.
+ */
+async function updateActivityInStorage(activityData) {
+    if (!activityData || !activityData.id) {
+        throw new Error("Activity data with an ID is required for updating.");
+    }
+
+    const activity = {
+        ...activityData,
+        updatedAt: new Date().toISOString(),
+    };
+
+    try {
+        await Storage.update('activities', activity.id, activity);
+        return activity;
+    } catch (error) {
+        console.error("Error updating activity in storage:", error);
+        throw new Error("Failed to update activity.");
     }
 }

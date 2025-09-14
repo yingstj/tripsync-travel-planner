@@ -1,10 +1,9 @@
-
 // Trip data management functions
 
 /**
  * Saves a new trip to storage.
  * @param {string} userId The ID of the user creating the trip.
- * @param {object} tripData The trip data to save.
+ * @param {object} tripData The trip data to save. Expected to have a 'destinations' array and 'isTentative' boolean.
  * @returns {Promise<object>} The saved trip object with a new ID.
  */
 async function saveTripToStorage(userId, tripData) {
@@ -20,6 +19,16 @@ async function saveTripToStorage(userId, tripData) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };
+
+    // Ensure destinations is an array, even if empty
+    if (!trip.destinations) {
+        trip.destinations = [];
+    }
+
+    // Ensure isTentative is a boolean, default to false if not provided
+    if (typeof trip.isTentative !== 'boolean') {
+        trip.isTentative = false;
+    }
 
     try {
         await Storage.save('trips', trip);

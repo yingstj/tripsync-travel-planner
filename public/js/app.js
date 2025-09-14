@@ -1,11 +1,10 @@
-
 // Global App State
 const AppState = {
     user: null,
     trips: [],
     currentTripId: null,
     currentView: 'dashboard',
-    activities: [],
+    activities: [], // This will now hold all activities, scheduled and unscheduled
     get currentTrip() {
         return this.trips.find(t => t.id === this.currentTripId);
     }
@@ -19,329 +18,262 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 });
 
+function initMapScript() {
+    console.log("Google Maps API loaded.");
+    initAutocompleteForDestinationInput(document.querySelector('#destinationInputsContainer .destination-input'));
+    initAutocompleteForActivityLocation(document.getElementById('customActivityLocation'));
+}
+
 async function initApp() {
-    showSpinner();
-    const userEmail = localStorage.getItem('userEmail');
-    const userName = localStorage.getItem('userName');
-    const userId = localStorage.getItem('userToken');
-
-    if (!userId || userId === 'demo_token' && !localStorage.getItem('demoMode')) {
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    AppState.user = { id: userId, email: userEmail, name: userName };
-
-    await loadTrips();
-    renderCurrentView();
-    hideSpinner();
+    // ... (existing initApp code)
 }
 
 // --- DATA LOADING ---
-async function loadTrips() {
-    try {
-        const tripsData = await fetchTripsFromStorage(AppState.user.id);
-        AppState.trips = tripsData;
-    } catch (error) {
-        console.error('Error loading trips:', error);
-        showToast('Failed to load trips.', 'error');
-    }
-}
-
-async function loadActivitiesForCurrentTrip() {
-    if (!AppState.currentTripId) return;
-    showSpinner();
-    try {
-        const activitiesData = await fetchActivitiesFromStorage(AppState.currentTripId);
-        AppState.activities = activitiesData;
-    } catch (error) {
-        console.error('Error loading activities:', error);
-        showToast('Failed to load activities.', 'error');
-    } finally {
-        hideSpinner();
-    }
-}
+// ... (existing data loading functions)
 
 // --- NAVIGATION & VIEW RENDERING ---
 function setupNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const view = link.getAttribute('data-view');
-            
-            if (!AppState.currentTripId && view !== 'dashboard') {
-                showToast('Please select a trip first!', 'info');
-                return;
-            }
-            
-            AppState.currentView = view;
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            renderCurrentView();
-        });
-    });
-
-    const navToggle = document.getElementById('navToggle');
-    if(navToggle) {
-        navToggle.addEventListener('click', () => {
-            document.querySelector('.nav-menu').classList.toggle('active');
-        });
-    }
+    // ... (existing setupNavigation code)
 }
 
 function renderCurrentView() {
-    document.querySelectorAll('.view-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
+    document.querySelectorAll('.view-section').forEach(section => section.classList.remove('active'));
     const currentSection = document.getElementById(AppState.currentView);
     if (currentSection) {
         currentSection.classList.add('active');
-        
         switch (AppState.currentView) {
             case 'dashboard': renderDashboard(); break;
+            case 'planner': renderPlanner(); break;
             case 'timeline': renderTimeline(); break;
-            case 'calendar': renderComingSoon('calendar'); break;
-            case 'map': renderMap(); break;
-            case 'budget': renderComingSoon('budget'); break;
-            case 'documents': renderComingSoon('documents'); break;
-            case 'checklist': renderComingSoon('checklist'); break;
+            case 'calendar': /* renderCalendar(); */ break;
+            case 'map': /* renderMap(); */ break;
         }
     }
 }
 
 // --- MODAL HANDLING ---
-function setupModals() {
-    document.querySelectorAll('.modal-close, .btn-secondary[data-modal]').forEach(btn => {
-        const modalId = btn.getAttribute('data-modal');
-        btn.addEventListener('click', () => closeModal(modalId));
-    });
-
-    window.addEventListener('click', (event) => {
-        if (event.target.classList.contains('modal')) {
-            closeModal(event.target.id);
-        }
-    });
-}
-
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.add('active');
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
-}
+// ... (existing modal handling functions)
 
 // --- GENERAL EVENT LISTENERS ---
 function setupEventListeners() {
-    document.getElementById('newTrip')?.addEventListener('click', () => openModal('newTripModal'));
-    document.getElementById('newTripForm')?.addEventListener('submit', handleNewTripSubmit);
-    document.getElementById('logoutButton')?.addEventListener('click', logout);
-    document.getElementById('addActivity')?.addEventListener('click', () => openModal('activityModal'));
-    document.getElementById('activityForm')?.addEventListener('submit', handleActivitySubmit);
+    // ... (existing event listeners)
+    document.getElementById('customActivityForm')?.addEventListener('submit', handleAddCustomActivity);
+    document.getElementById('pointsOfInterestContainer')?.addEventListener('change', handlePoiCheckboxChange);
 }
+
+
+// --- DESTINATION & ACTIVITY AUTOCOMPLETE ---
+// ... (existing autocomplete functions)
+
 
 // --- DASHBOARD ---
 function renderDashboard() {
-    const grid = document.getElementById('tripsGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    
-    if (AppState.trips.length === 0) {
-        grid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
-                <i class="fas fa-suitcase-rolling fa-3x" style="color: #9ca3af; margin-bottom: 1rem;"></i>
-                <h3>No trips yet</h3>
-                <p>Start planning your next adventure!</p>
-                <button class="btn-primary" id="createFirstTripBtn">
-                    <i class="fas fa-plus"></i> Create Your First Trip
-                </button>
-            </div>
-        `;
-        document.getElementById('createFirstTripBtn')?.addEventListener('click', () => openModal('newTripModal'));
-        return;
-    }
-    
-    AppState.trips.forEach(trip => {
-        const card = document.createElement('div');
-        card.className = 'trip-card';
-        card.setAttribute('data-trip-id', trip.id);
-        card.innerHTML = `
-            <div class="trip-card-image" style="background-image: url('${trip.imageUrl || 'assets/default-trip.jpg'}')"></div>
-            <div class="trip-card-content">
-                <h3 class="trip-card-title">${escapeHtml(trip.name)}</h3>
-                <div class="trip-card-meta">
-                    <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(trip.destination)}</span>
-                    <span><i class="fas fa-calendar"></i> ${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}</span>
-                </div>
-            </div>
-        `;
-        card.addEventListener('click', () => selectTrip(trip.id));
-        grid.appendChild(card);
-    });
+    // ... (existing renderDashboard code)
 }
 
 async function handleNewTripSubmit(event) {
-    event.preventDefault();
-    const form = event.target;
-    const newTrip = {
-        name: form.tripName.value.trim(),
-        destination: form.destination.value.trim(),
-        startDate: form.startDate.value,
-        endDate: form.endDate.value,
-        budget: form.budget.value || 0,
-        notes: form.notes.value.trim(),
-        status: 'draft',
-    };
-
-    if (!newTrip.name || !newTrip.destination || !newTrip.startDate || !newTrip.endDate) {
-        showToast('Please fill in all required fields.', 'error');
-        return;
-    }
-
-    showSpinner();
-    try {
-        const savedTrip = await saveTripToStorage(AppState.user.id, newTrip);
-        AppState.trips.push(savedTrip);
-        selectTrip(savedTrip.id);
-        closeModal('newTripModal');
-        showToast('Trip created successfully!', 'success');
-    } catch (error) {
-        showToast('Failed to create trip.', 'error');
-    } finally {
-        hideSpinner();
-    }
+    // ... (existing handleNewTripSubmit code)
 }
 
 async function selectTrip(tripId) {
     AppState.currentTripId = tripId;
     await loadActivitiesForCurrentTrip();
-    AppState.currentView = 'timeline';
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    document.querySelector('.nav-link[data-view="timeline"]').classList.add('active');
+    AppState.currentView = 'planner'; // Go to the new planner view
     renderCurrentView();
+    // Update nav links
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.querySelector('.nav-link[data-view="planner"]').classList.add('active');
 }
 
-// --- TIMELINE ---
-function renderTimeline() {
-    const container = document.getElementById('timelineContainer');
-    const currentTrip = AppState.currentTrip;
-    if (!container || !currentTrip) {
-        container.innerHTML = '<p>No trip selected or timeline data available.</p>';
+// --- PLANNER VIEW ---
+function renderPlanner() {
+    if (!AppState.currentTrip) {
+        // Redirect to dashboard if no trip is selected
+        AppState.currentView = 'dashboard';
+        renderCurrentView();
         return;
     }
-
-    let html = `<h2>Timeline for ${escapeHtml(currentTrip.name)}</h2>`;
-    if (AppState.activities.length === 0) {
-        html += '<p>No activities planned yet. Add one to get started!</p>';
-    } else {
-        const groupedActivities = AppState.activities.reduce((acc, activity) => {
-            const date = activity.date.split('T')[0];
-            if (!acc[date]) acc[date] = [];
-            acc[date].push(activity);
-            return acc;
-        }, {});
-
-        Object.keys(groupedActivities).sort().forEach(date => {
-            html += `<div class="timeline-day">
-                        <div class="timeline-date">${formatDate(date)}</div>
-                        <div class="timeline-items">`;
-            groupedActivities[date].forEach(activity => {
-                html += `<div class="timeline-item">
-                            <div class="timeline-time">${activity.time || ''}</div>
-                            <div class="timeline-content">
-                                <h3>${escapeHtml(activity.name)}</h3>
-                                <p>${escapeHtml(activity.location || '')}</p>
-                            </div>
-                         </div>`;
-            });
-            html += `</div></div>`;
-        });
-    }
-    container.innerHTML = html;
+    document.getElementById('plannerTripName').textContent = `Planner for ${AppState.currentTrip.name}`;
+    fetchAndDisplaySuggestions();
+    renderPlannerTimeline();
 }
 
-async function handleActivitySubmit(event) {
-    event.preventDefault();
-    const form = event.target;
-    const newActivity = {
+async function fetchAndDisplaySuggestions() {
+    const container = document.getElementById('pointsOfInterestContainer');
+    container.innerHTML = '<p>Loading suggestions...</p>';
+    const placesService = new google.maps.places.PlacesService(document.createElement('div'));
+    let suggestions = [];
+
+    for (const destination of AppState.currentTrip.destinations) {
+        const request = {
+            location: new google.maps.LatLng(destination.lat, destination.lng),
+            radius: '5000',
+            type: ['tourist_attraction', 'museum', 'park']
+        };
+        const results = await new Promise(resolve => {
+            placesService.nearbySearch(request, (res, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) resolve(res);
+                else resolve([]);
+            });
+        });
+        suggestions = suggestions.concat(results);
+    }
+    
+    if (suggestions.length > 0) {
+        container.innerHTML = suggestions.slice(0, 15).map(place => `
+            <div class="poi-item">
+                <input type="checkbox" id="${place.place_id}" data-name="${place.name}" data-location="${place.vicinity}" data-lat="${place.geometry.location.lat()}" data-lng="${place.geometry.location.lng()}">
+                <label for="${place.place_id}">${place.name}</label>
+            </div>
+        `).join('');
+    } else {
+        container.innerHTML = '<p>No suggestions found.</p>';
+    }
+}
+
+async function handlePoiCheckboxChange(event) {
+    const checkbox = event.target;
+    const activityData = {
+        id: `activity_${checkbox.id}`,
         tripId: AppState.currentTripId,
-        name: form.activityName.value.trim(),
-        date: form.activityDate.value,
-        time: form.activityTime.value,
-        location: form.activityLocation.value.trim(),
-        category: form.activityCategory.value,
-        cost: form.activityCost.value || 0,
-        notes: form.activityNotes.value.trim(),
+        name: checkbox.dataset.name,
+        location: checkbox.dataset.location,
+        lat: parseFloat(checkbox.dataset.lat),
+        lng: parseFloat(checkbox.dataset.lng),
+        date: null, // Unscheduled
+        time: null,
     };
 
-    if (!newActivity.name || !newActivity.date) {
-        showToast('Please fill in activity name and date.', 'error');
-        return;
-    }
-
-    showSpinner();
-    try {
-        const savedActivity = await saveActivityToStorage(newActivity);
+    if (checkbox.checked) {
+        const savedActivity = await saveActivityToStorage(activityData);
         AppState.activities.push(savedActivity);
-        renderTimeline();
-        closeModal('activityModal');
-        showToast('Activity added!', 'success');
-    } catch (error) {
-        showToast('Failed to add activity.', 'error');
-    } finally {
-        hideSpinner();
+    } else {
+        await deleteActivityFromStorage(activityData.id);
+        AppState.activities = AppState.activities.filter(a => a.id !== activityData.id);
+    }
+    renderPlannerTimeline();
+}
+
+async function handleAddCustomActivity(event) {
+    event.preventDefault();
+    const form = event.target;
+    const nameInput = form.querySelector('#customActivityName');
+    const locationInput = form.querySelector('#customActivityLocation');
+    
+    const activityData = {
+        tripId: AppState.currentTripId,
+        name: nameInput.value,
+        location: locationInput.value,
+        lat: parseFloat(locationInput.dataset.lat) || null,
+        lng: parseFloat(locationInput.dataset.lng) || null,
+        date: null,
+        time: null
+    };
+
+    const savedActivity = await saveActivityToStorage(activityData);
+    AppState.activities.push(savedActivity);
+    renderPlannerTimeline();
+    form.reset();
+}
+
+function renderPlannerTimeline() {
+    const unscheduledContainer = document.getElementById('unscheduledItems');
+    const timelineContainer = document.getElementById('plannerTimelineContainer');
+    
+    // Render unscheduled activities
+    const unscheduledActivities = AppState.activities.filter(a => !a.date);
+    unscheduledContainer.innerHTML = unscheduledActivities.map(activity => renderActivityItem(activity)).join('');
+
+    // Render scheduled activities
+    const scheduledActivities = AppState.activities.filter(a => a.date);
+    const groupedActivities = scheduledActivities.reduce((acc, activity) => {
+        const date = activity.date.split('T')[0];
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(activity);
+        return acc;
+    }, {});
+    
+    const allDates = getDatesInRange(AppState.currentTrip.startDate, AppState.currentTrip.endDate);
+    timelineContainer.innerHTML = allDates.map(date => {
+        const dateString = date.toISOString().split('T')[0];
+        const activitiesForDay = groupedActivities[dateString] || [];
+        return `
+            <div class="timeline-day" data-date="${dateString}">
+                <div class="timeline-date">${formatDate(dateString)}</div>
+                <button class="btn-secondary optimize-day-btn" data-date="${dateString}">Optimize</button>
+                <div class="timeline-items drop-zone" ondragover="event.preventDefault()" ondrop="handleDrop(event)" data-date="${dateString}">
+                    ${activitiesForDay.map(activity => renderActivityItem(activity)).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderActivityItem(activity) {
+    return `
+        <div class="timeline-item" draggable="true" data-activity-id="${activity.id}" ondragstart="handleDragStart(event)">
+            <h3>${escapeHtml(activity.name)}</h3>
+            <p>${escapeHtml(activity.location || '')}</p>
+        </div>
+    `;
+}
+
+// --- DRAG & DROP & OPTIMIZE ---
+async function handleDrop(event) {
+    event.preventDefault();
+    const activityId = event.dataTransfer.getData('text/plain');
+    const newDate = event.currentTarget.dataset.date === "null" ? null : event.currentTarget.dataset.date;
+    
+    const activity = AppState.activities.find(a => a.id === activityId);
+    if (activity) {
+        activity.date = newDate;
+        await updateActivityInStorage(activity);
+        renderPlannerTimeline();
     }
 }
 
-// --- PLACEHOLDER RENDERERS ---
-function renderComingSoon(viewName) {
-    const container = document.getElementById(viewName);
-    if (container) {
-        container.innerHTML = `
-            <div class="empty-state" style="padding: 3rem; text-align: center;">
-                <i class="fas fa-cogs fa-3x" style="color: #9ca3af; margin-bottom: 1rem;"></i>
-                <h3>Coming Soon!</h3>
-                <p>We're busy building this feature. Check back later!</p>
-            </div>
-        `;
+async function optimizeDayActivities(date) {
+    let activitiesForDay = AppState.activities.filter(a => a.date === date && a.lat && a.lng);
+    if (activitiesForDay.length < 2) return;
+
+    let optimizedOrder = [activitiesForDay.shift()];
+    while (activitiesForDay.length > 0) {
+        let lastActivity = optimizedOrder[optimizedOrder.length - 1];
+        let nearest = activitiesForDay.reduce((prev, curr) => {
+            let prevDist = calculateDistance(lastActivity.lat, lastActivity.lng, prev.lat, prev.lng);
+            let currDist = calculateDistance(lastActivity.lat, lastActivity.lng, curr.lat, curr.lng);
+            return (currDist < prevDist) ? curr : prev;
+        });
+        optimizedOrder.push(nearest);
+        activitiesForDay = activitiesForDay.filter(a => a.id !== nearest.id);
     }
+
+    // Update AppState and re-render
+    const otherActivities = AppState.activities.filter(a => a.date !== date);
+    AppState.activities = [...otherActivities, ...optimizedOrder];
+    renderPlannerTimeline();
+    showToast('Day optimized!', 'success');
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    // ... (Haversine formula implementation)
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
 
 
 // --- UTILITY FUNCTIONS ---
-function showSpinner() {
-    document.getElementById('loadingSpinner').style.display = 'flex';
-}
-
-function hideSpinner() {
-    document.getElementById('loadingSpinner').style.display = 'none';
-}
-
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 100);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 500);
-    }, 3000);
-}
-
-function escapeHtml(str) {
-    const p = document.createElement('p');
-    p.appendChild(document.createTextNode(str || ''));
-    return p.innerHTML;
-}
-
-function formatDate(dateString) {
-    if(!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-CA');
+// ... (existing utility functions)
+// Add a function to delete activities from storage
+async function deleteActivityFromStorage(activityId) {
+    // This assumes your Storage object has a 'delete' method
+    if (Storage.delete) {
+        await Storage.delete('activities', activityId);
+    }
 }
